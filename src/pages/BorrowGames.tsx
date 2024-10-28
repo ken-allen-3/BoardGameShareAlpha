@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Calendar } from 'lucide-react';
+import { Search } from 'lucide-react';
 import { getDatabase, ref, get } from 'firebase/database';
 import { useAuth } from '../contexts/AuthContext';
 import BorrowRequestModal from '../components/BorrowRequestModal';
@@ -14,6 +14,10 @@ interface Game {
     name: string;
   };
   available: boolean;
+  minPlayers?: number;
+  maxPlayers?: number;
+  minPlaytime?: number;
+  maxPlaytime?: number;
 }
 
 interface BorrowRequest {
@@ -32,12 +36,11 @@ function BorrowGames() {
   const { currentUser } = useAuth();
 
   useEffect(() => {
+    if (!currentUser) return;
     loadAllGames();
-  }, []);
+  }, [currentUser]);
 
   const loadAllGames = async () => {
-    if (!currentUser) return;
-
     const db = getDatabase();
     const gamesRef = ref(db, 'games');
     const usersRef = ref(db, 'users');
@@ -69,7 +72,11 @@ function BorrowGames() {
                   email: userEmail,
                   name: userInfo.name
                 },
-                available: true
+                available: true,
+                minPlayers: game.minPlayers,
+                maxPlayers: game.maxPlayers,
+                minPlaytime: game.minPlaytime,
+                maxPlaytime: game.maxPlaytime
               });
             }
           });
@@ -99,6 +106,22 @@ function BorrowGames() {
     )
   );
 
+  const formatPlaytime = (min?: number, max?: number) => {
+    if (!min && !max) return null;
+    if (min === max) return `${min} min`;
+    if (!max) return `${min}+ min`;
+    if (!min) return `Up to ${max} min`;
+    return `${min}-${max} min`;
+  };
+
+  const formatPlayers = (min?: number, max?: number) => {
+    if (!min && !max) return null;
+    if (min === max) return `${min} players`;
+    if (!max) return `${min}+ players`;
+    if (!min) return `Up to ${max} players`;
+    return `${min}-${max} players`;
+  };
+
   return (
     <div>
       <div className="mb-8">
@@ -117,10 +140,10 @@ function BorrowGames() {
 
       {error && <ErrorMessage message={error} />}
 
-      <div className="grid grid-cols-1 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {filteredGames.map((game) => (
           <div key={game.id} className="bg-white rounded-xl shadow-md overflow-hidden">
-            <div className="relative h-48">
+            <div className="relative aspect-square">
               <img
                 src={game.image}
                 alt={game.title}
@@ -131,8 +154,19 @@ function BorrowGames() {
               />
             </div>
             <div className="p-4">
-              <h3 className="text-xl font-semibold mb-2">{game.title}</h3>
-              <p className="text-gray-600 mb-4">Owned by {game.owner.name}</p>
+              <h3 className="text-lg font-semibold mb-2 line-clamp-1" title={game.title}>
+                {game.title}
+              </h3>
+              <p className="text-gray-600 mb-4 line-clamp-1">Owned by {game.owner.name}</p>
+              
+              <div className="flex flex-wrap gap-2 mb-4 text-sm text-gray-600">
+                {formatPlayers(game.minPlayers, game.maxPlayers) && (
+                  <span>{formatPlayers(game.minPlayers, game.maxPlayers)}</span>
+                )}
+                {formatPlaytime(game.minPlaytime, game.maxPlaytime) && (
+                  <span>• {formatPlaytime(game.minPlaytime, game.maxPlaytime)}</span>
+                )}
+              </div>
               
               {requestStatus[game.id] ? (
                 <div className={`text-center py-2 rounded-lg ${
@@ -147,10 +181,9 @@ function BorrowGames() {
               ) : (
                 <button
                   onClick={() => setSelectedGame(game)}
-                  className="flex items-center justify-center w-full space-x-2 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition"
+                  className="w-full bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition"
                 >
-                  <Calendar className="h-5 w-5" />
-                  <span>Request to Borrow</span>
+                  Request to Borrow
                 </button>
               )}
             </div>

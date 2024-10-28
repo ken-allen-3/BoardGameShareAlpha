@@ -16,6 +16,7 @@ function GameSearchModal({ onClose, onGameSelect }: GameSearchModalProps) {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
 
   const handleSearch = async (newSearch = true) => {
     if (!searchQuery.trim()) return;
@@ -26,6 +27,7 @@ function GameSearchModal({ onClose, onGameSelect }: GameSearchModalProps) {
       setResults([]);
       setPage(1);
       setHasMore(false);
+      setRetryCount(0);
     } else {
       setLoadingMore(true);
     }
@@ -54,9 +56,18 @@ function GameSearchModal({ onClose, onGameSelect }: GameSearchModalProps) {
       if (games.items.length === 0 && newSearch) {
         setError('No games found matching your search.');
       }
-    } catch (err) {
-      console.error('Search error:', err);
-      setError('Failed to search games. Please try again.');
+    } catch (err: any) {
+      const errorMessage = err.message || 'An error occurred while searching games.';
+      
+      // If we haven't exceeded retry attempts, try again
+      if (retryCount < 2 && errorMessage.includes('temporarily unavailable')) {
+        setRetryCount(prev => prev + 1);
+        setTimeout(() => handleSearch(newSearch), 2000 * Math.pow(2, retryCount));
+        setError('Search request failed. Retrying...');
+        return;
+      }
+
+      setError(errorMessage);
       if (newSearch) {
         setResults([]);
       }

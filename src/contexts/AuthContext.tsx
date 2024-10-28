@@ -5,7 +5,8 @@ import {
   signOut as firebaseSignOut,
   onAuthStateChanged,
   setPersistence,
-  browserLocalPersistence
+  browserLocalPersistence,
+  createUserWithEmailAndPassword
 } from 'firebase/auth';
 import { ref, set } from 'firebase/database';
 import { auth, database, ensureDatabaseStructure, validateDatabaseAccess } from '../config/firebase';
@@ -13,6 +14,7 @@ import { auth, database, ensureDatabaseStructure, validateDatabaseAccess } from 
 interface AuthContextType {
   currentUser: User | null;
   signIn: (email: string, password: string) => Promise<void>;
+  signUp: (email: string, password: string, name: string) => Promise<void>;
   signOut: () => Promise<void>;
   loading: boolean;
   error: string | null;
@@ -35,18 +37,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [error, setError] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
 
+  // Set up persistence immediately when the auth module is initialized
+  setPersistence(auth, browserLocalPersistence).catch((err) => {
+    console.error('Error setting persistence:', err);
+  });
+
   useEffect(() => {
-    const setupAuth = async () => {
-      try {
-        await setPersistence(auth, browserLocalPersistence);
-      } catch (err) {
-        console.error('Error setting up auth:', err);
-        setError('Failed to set up authentication. Please try again.');
-      }
-    };
-    
-    setupAuth();
-    
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setCurrentUser(user);
       
@@ -84,7 +80,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setError(null);
       await signInWithEmailAndPassword(auth, email, password);
       
-const userRef = ref(database, `users/${email.replace(/\./g, ',')}`);
+      const userRef = ref(database, `users/${email.replace(/\./g, ',')}`);
       await set(userRef, {
         email,
         isAdmin: email === 'kenny@springwavestudios.com',
@@ -93,6 +89,33 @@ const userRef = ref(database, `users/${email.replace(/\./g, ',')}`);
     } catch (err: any) {
       console.error('Sign in error:', err);
       throw new Error(err.message);
+    }
+  }
+
+  async function signUp(email: string, password: string, name: string) {
+    try {
+      setError(null);
+      const { user } = await createUserWithEmailAndPassword(auth, email, password);
+      
+      const userRef = ref(database, `users/${email.replace(/\./g, ',')}`);
+      await set(userRef, {
+        email,
+        name,
+        isAdmin: false,
+        createdAt: new Date().toISOString(),
+        lastLogin: new Date().toISOString()
+      });
+    } catch (err: any) {
+      console.error('Sign up error:', err);
+      if (err.code === 'auth/email-already-in-use') {
+        throw new Error('This email is already registered. Please use a different email or sign in.');
+      } else if (err.code === 'auth/invalid-email') {
+        throw new Error('Please enter a valid email address.');
+      } else if (err.code === 'auth/weak-password') {
+        throw new Error('Password should be at least 6 characters long.');
+      } else {
+        throw new Error('Failed to create account. Please try again.');
+      }
     }
   }
 
@@ -109,6 +132,7 @@ const userRef = ref(database, `users/${email.replace(/\./g, ',')}`);
   const value = {
     currentUser,
     signIn,
+    signUp,
     signOut,
     loading,
     error,

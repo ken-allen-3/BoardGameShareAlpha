@@ -1,21 +1,10 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-import { viteStaticCopy } from 'vite-plugin-static-copy';
 
 export default defineConfig({
-  plugins: [
-    react(),
-    viteStaticCopy({
-      targets: [
-        {
-          src: 'src/lastCommitDate.json',
-          dest: ''
-        }
-      ]
-    })
-  ],
+  plugins: [react()],
   server: {
-    host: '192.168.1.3',
+    host: '0.0.0.0',
     port: 5173,
     strictPort: true,
     hmr: {

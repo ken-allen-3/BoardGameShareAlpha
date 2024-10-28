@@ -8,13 +8,6 @@ function Navbar() {
   const { currentUser, isAdmin, signOut } = useAuth();
   const navigate = useNavigate();
 
-  // Add debug logging
-  console.log('Navbar state:', {
-    userEmail: currentUser?.email,
-    isAdmin,
-    isMenuOpen
-  });
-
   const handleSignOut = async () => {
     try {
       await signOut();
@@ -26,7 +19,7 @@ function Navbar() {
 
   return (
     <nav className="bg-white shadow-lg">
-      <div className="container mx-auto px-4">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <Link to={currentUser ? '/my-games' : '/'} className="flex items-center space-x-2">
             <Dice6 className="h-8 w-8 text-indigo-600" />
@@ -53,7 +46,6 @@ function Navbar() {
           )}
         </div>
 
-        {/* Mobile Menu */}
         {currentUser && isMenuOpen && (
           <div className="py-4 border-t border-gray-100">
             <div className="flex flex-col space-y-4">
@@ -72,6 +64,14 @@ function Navbar() {
               >
                 <Dice6 className="h-5 w-5" />
                 <span>Borrow</span>
+              </Link>
+              <Link 
+                to="/groups" 
+                className="flex items-center space-x-1 text-gray-600 hover:text-indigo-600 px-2 py-2"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                <Users className="h-5 w-5" />
+                <span>Groups</span>
               </Link>
               {isAdmin && (
                 <Link 

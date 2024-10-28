@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
+import { getAuth, setPersistence, browserLocalPersistence } from 'firebase/auth';
 import { getDatabase, ref, get } from 'firebase/database';
 
 const firebaseConfig = {
@@ -15,7 +15,14 @@ const firebaseConfig = {
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
+
+// Initialize Firebase Authentication and get a reference to the service
 export const auth = getAuth(app);
+
+// Set persistence to LOCAL immediately
+setPersistence(auth, browserLocalPersistence).catch(console.error);
+
+// Initialize Realtime Database and get a reference to the service
 export const database = getDatabase(app);
 
 // Initialize database structure for a user
