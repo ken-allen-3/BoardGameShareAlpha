@@ -1,12 +1,21 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Users, BookOpen, Camera, Bell } from 'lucide-react';
 
 function Home() {
+  const [lastCommitDate, setLastCommitDate] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetch('/lastCommitDate.json')
+      .then(response => response.json())
+      .then(data => setLastCommitDate(data.lastCommitDate))
+      .catch(error => console.error('Error fetching last commit date:', error));
+  }, []);
+
   return (
     <div>
       <div className="text-sm text-gray-500 text-center mb-4">
-        Last updated: {new Date(1729876943484).toLocaleString()}
+        Last updated: {lastCommitDate ? new Date(lastCommitDate).toLocaleString() : 'Loading...'}
       </div>
 
       <div className="text-center mb-8">
@@ -29,36 +38,11 @@ function Home() {
 
         <div className="bg-white rounded-xl shadow-md p-4 transform transition hover:scale-105">
           <Camera className="h-10 w-10 text-indigo-600 mb-3" />
-          <h2 className="text-lg font-semibold mb-2">Quick Photo Cataloging</h2>
+          <h2 className="text-lg font-semibold mb-2">Capture Moments</h2>
           <p className="text-sm text-gray-600">
-            Add games to your collection with a simple photo
+            Share photos of your game nights and memorable moments
           </p>
         </div>
-
-        <div className="bg-white rounded-xl shadow-md p-4 transform transition hover:scale-105">
-          <BookOpen className="h-10 w-10 text-indigo-600 mb-3" />
-          <h2 className="text-lg font-semibold mb-2">Easy Borrowing</h2>
-          <p className="text-sm text-gray-600">
-            Browse available games and request to borrow with one click
-          </p>
-        </div>
-
-        <div className="bg-white rounded-xl shadow-md p-4 transform transition hover:scale-105">
-          <Bell className="h-10 w-10 text-indigo-600 mb-3" />
-          <h2 className="text-lg font-semibold mb-2">Smart Notifications</h2>
-          <p className="text-sm text-gray-600">
-            Stay updated on game requests and returns via email
-          </p>
-        </div>
-      </div>
-
-      <div className="text-center">
-        <Link
-          to="/login"
-          className="inline-block w-full bg-indigo-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-indigo-700 transition"
-        >
-          Get Started
-        </Link>
       </div>
     </div>
   );
