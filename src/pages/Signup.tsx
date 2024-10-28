@@ -1,15 +1,17 @@
 import React, { useState } from 'react';
-import { Mail, Lock, AlertCircle, Eye, EyeOff } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Mail, Lock, User, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import ErrorMessage from '../components/ErrorMessage';
 
-function Login() {
+function Signup() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
+  const [name, setName] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { signIn } = useAuth();
+  const [showPassword, setShowPassword] = useState(false);
+  const { signUp } = useAuth();
   const navigate = useNavigate();
 
   async function handleSubmit(e: React.FormEvent) {
@@ -18,7 +20,7 @@ function Login() {
     try {
       setError('');
       setLoading(true);
-      await signIn(email, password);
+      await signUp(email, password, name);
       navigate('/my-games');
     } catch (err: any) {
       setError(err.message);
@@ -30,16 +32,28 @@ function Login() {
   return (
     <div className="max-w-md mx-auto">
       <div className="bg-white rounded-xl shadow-md p-8">
-        <h2 className="text-2xl font-bold text-center text-gray-900 mb-8">Welcome Back</h2>
+        <h2 className="text-2xl font-bold text-center text-gray-900 mb-8">Create Your Account</h2>
         
-        {error && (
-          <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
-            <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
-            <div className="text-sm text-red-700">{error}</div>
-          </div>
-        )}
+        {error && <ErrorMessage message={error} />}
         
         <form onSubmit={handleSubmit} className="space-y-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Name
+            </label>
+            <div className="relative">
+              <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                placeholder="Enter your name"
+                required
+              />
+            </div>
+          </div>
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Email
@@ -68,8 +82,9 @@ function Login() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full pl-10 pr-12 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                placeholder="Enter your password"
+                placeholder="Create a password"
                 required
+                minLength={6}
               />
               <button
                 type="button"
@@ -83,6 +98,9 @@ function Login() {
                 )}
               </button>
             </div>
+            <p className="mt-1 text-sm text-gray-500">
+              Must be at least 6 characters long
+            </p>
           </div>
 
           <button
@@ -90,12 +108,19 @@ function Login() {
             disabled={loading}
             className="w-full bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? 'Signing in...' : 'Sign In'}
+            {loading ? 'Creating Account...' : 'Create Account'}
           </button>
         </form>
+
+        <p className="mt-6 text-center text-sm text-gray-600">
+          Already have an account?{' '}
+          <Link to="/login" className="text-indigo-600 hover:text-indigo-700 font-medium">
+            Sign in
+          </Link>
+        </p>
       </div>
     </div>
   );
 }
 
-export default Login;
+export default Signup;

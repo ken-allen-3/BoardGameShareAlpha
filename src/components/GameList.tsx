@@ -35,10 +35,10 @@ const GameList: React.FC<GameListProps> = ({ games, onDeleteGame }) => {
   };
 
   return (
-    <div className="grid grid-cols-1 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
       {games.map((game) => (
         <div key={game.id} className="bg-white rounded-xl shadow-md overflow-hidden">
-          <div className="relative h-48">
+          <div className="relative aspect-square">
             <img
               src={game.image}
               alt={game.title}
@@ -57,7 +57,9 @@ const GameList: React.FC<GameListProps> = ({ games, onDeleteGame }) => {
             </div>
           </div>
           <div className="p-4">
-            <h3 className="text-lg font-semibold mb-2">{game.title}</h3>
+            <h3 className="text-lg font-semibold mb-2 line-clamp-1" title={game.title}>
+              {game.title}
+            </h3>
             
             <div className="flex flex-wrap gap-3 mb-3">
               {formatPlayers(game.minPlayers, game.maxPlayers) && (

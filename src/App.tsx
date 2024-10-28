@@ -6,7 +6,10 @@ import Home from './pages/Home';
 import MyGames from './pages/MyGames';
 import BorrowGames from './pages/BorrowGames';
 import Login from './pages/Login';
+import Signup from './pages/Signup';
 import Users from './pages/Users';
+import Groups from './pages/Groups';
+import GroupInvite from './pages/GroupInvite';
 
 function RequireAuth({ children }: { children: React.ReactNode }) {
   const { currentUser, loading } = useAuth();
@@ -23,14 +26,7 @@ function RequireAuth({ children }: { children: React.ReactNode }) {
 }
 
 function RequireAdmin({ children }: { children: React.ReactNode }) {
-  const { currentUser, loading } = useAuth();
-  const isAdmin = currentUser?.email === 'kenny@springwavestudios.com';
-  
-  console.log('Admin check:', {
-    currentUser: currentUser?.email,
-    isAdmin,
-    loading
-  });
+  const { currentUser, loading, isAdmin } = useAuth();
 
   if (loading) {
     return <div>Loading...</div>;
@@ -44,17 +40,16 @@ function RequireAdmin({ children }: { children: React.ReactNode }) {
 }
 
 function App() {
-  console.log('Firebase connection check - App loaded');
-  
   return (
     <AuthProvider>
       <BrowserRouter>
         <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-purple-50">
-          <div className="mx-auto max-w-full">
-            <Navbar />
-            <main className="px-4 py-8">
+          <Navbar />
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+            <main className="py-8">
               <Routes>
                 <Route path="/" element={<Home />} />
+                <Route path="/signup" element={<Signup />} />
                 <Route path="/my-games" element={
                   <RequireAuth>
                     <MyGames />
@@ -70,6 +65,12 @@ function App() {
                     <Users />
                   </RequireAdmin>
                 } />
+                <Route path="/groups" element={
+                  <RequireAuth>
+                    <Groups />
+                  </RequireAuth>
+                } />
+                <Route path="/groups/invite/:inviteId" element={<GroupInvite />} />
                 <Route path="/login" element={<Login />} />
               </Routes>
             </main>
